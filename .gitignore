@@ -1,0 +1,4 @@
+*.pyc
+core
+a.out
+.*
