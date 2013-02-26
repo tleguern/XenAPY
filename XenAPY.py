@@ -311,6 +311,13 @@ class Host(object):
         ret = self.api.host_metrics.get_memory_free(self.api.session, muuid)
         return int(checkAPIResult(ret))
 
+    @ReadOnlyCachedAttribute
+    def getVMByLabel(self, label):
+        for vm in self.vms:
+            if vm.label == label:
+                return vm
+        return None
+
     def __str__(self):
         s = "Hostname: {0}\n".format(self.hostname)
         s += "Label: {0}\n".format(self.label)
@@ -482,7 +489,6 @@ class Session(object):
             record = checkAPIResult(res)
             if not(record["is_a_template"]) and not(record["is_control_domain"]):
                 vms.append(VM(a))
-                time.sleep(0.1)
         return vms
 
     def getHosts(self):
@@ -491,7 +497,6 @@ class Session(object):
         for a in all:
             hosts.append(Host(a))
         return hosts
-
 
 if __name__ == "__main__":
     url = sys.argv[1]
