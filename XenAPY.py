@@ -18,25 +18,6 @@ import time
 import sys
 import xmlrpclib
 
-# TODO:
-# [X] Force utf-8 encoding for strings
-# [X] Force int conversion for numbers
-# [ ] class VBD
-# [ ] class VDI
-# [ ] class SR
-# [ ] class PBD
-# [X] class Session
-# [X] class Host
-#     [X] method ncpu - get the number of CPU attached to this host
-#     [X] method cpus - get a list of CPU object attached to this host
-#     [X] class CPU
-#     [X] class PIF
-#     [X] class VM
-#         [X] class VIF
-#     [ ] class PGPU
-#     [ ] class PCI
-# [ ] class Network
-
 # Helpers functions and classes
 
 def checkAPIResult(res):
