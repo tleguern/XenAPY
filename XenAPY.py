@@ -37,7 +37,7 @@ class Base(object, xmlrpclib.ServerProxy):
         xmlrpclib.ServerProxy.__init__(self, uri, None, None, 0, 1)
         session = None
 
-class ReadOnlyCachedAttribute(object):    
+class ReadOnlyCachedAttribute(object):
     '''This decorator allows you to create a property which will be lazy
     initialized and cached for later access.
     Inspired from Denis Otkidach work, under PSF license.
@@ -46,7 +46,7 @@ class ReadOnlyCachedAttribute(object):
         self.method = method
         self.name = name or method.__name__
         self.__doc__ = method.__doc__
-    def __get__(self, inst, cls): 
+    def __get__(self, inst, cls):
         if inst is None:
             return self
         elif self.name in inst.__dict__:
@@ -54,13 +54,13 @@ class ReadOnlyCachedAttribute(object):
         else:
             result = self.method(inst)
             inst.__dict__[self.name]=result
-            return result    
+            return result
     def __set__(self, inst, value):
         raise AttributeError("This property is read-only")
     def __delete__(self,inst):
         del inst.__dict__[self.name]
 
-class ReadOnlyAttribute(object):    
+class ReadOnlyAttribute(object):
     ''' This decorator allows you to create a property which will be lazy
     initilized, but recomputed at every access.
     Inspired from Denis Otkidach work, under PSF license.
@@ -69,12 +69,12 @@ class ReadOnlyAttribute(object):
         self.method = method
         self.name = name or method.__name__
         self.__doc__ = method.__doc__
-    def __get__(self, inst, cls): 
+    def __get__(self, inst, cls):
         if inst is None:
             return self
         else:
             result = self.method(inst)
-            return result    
+            return result
     def __set__(self, inst, value):
         raise AttributeError("This property is read-only")
     def __delete__(self,inst):
@@ -143,18 +143,19 @@ class CPU(object):
         ret = self.api.host_cpu.get_other_config(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    def dump(self):
-        print "=== {0} ===".format(self.number)
-        print "{0}".format(self.family)
-        print "{0}".format(self.features)
-        print "{0}".format(self.flags)
-        print "{0}".format(self.model)
-        print "{0}".format(self.modelname)
-        print "{0}".format(self.stepping)
-        print "{0}".format(self.speed)
-        print "{0}".format(self.utilisation)
-        print "{0}".format(self.vendor)
-        print "{0}".format(self.other_config)
+    def __str__(self):
+        s = "=== {0} ===\n".format(self.number)
+        s += "family: {0}\n".format(self.family)
+        s += "features: {0}\n".format(self.features)
+        s += "flags: {0}\n".format(self.flags)
+        s += "model: {0}\n".format(self.model)
+        s += "modelname: {0}\n".format(self.modelname)
+        s += "stepping: {0}\n".format(self.stepping)
+        s += "speed: {0}\n".format(self.speed)
+        s += "utilisation: {0}\n".format(self.utilisation)
+        s += "vendor: {0}\n".format(self.vendor)
+        s += "other_config: {0}".format(self.other_config)
+        return s
 
 class PIF(object):
     def __init__(self, uuid):
@@ -216,18 +217,19 @@ class PIF(object):
         ret = self.api.PIF.get_VLAN(self.api.session, self.uuid)
         return int(checkAPIResult(ret))
 
-    def dump(self):
-        print "=== {0} ===".format(self.device)
-        print "{0}".format(self.dns)
-        print "{0}".format(self.ipv4)
-        print "{0}".format(self.ipv4gateway)
-        #print "{0}".format(self.ipv6)
-        #print "{0}".format(self.ipv6gateway)
-        print "{0}".format(self.mac)
-        print "{0}".format(self.mtu)
-        print "{0}".format(self.netmask)
-        print "{0}".format(self.physical)
-        print "{0}".format(self.vlan)
+    def __str__(self):
+         s = "=== {0} ===\n".format(self.device)
+         s += "dns: {0}\n".format(self.dns)
+         s += "ipv4: {0}\n".format(self.ipv4)
+         s += "ipv4gateway: {0}\n".format(self.ipv4gateway)
+         #s += "{0}\n".format(self.ipv6)
+         #s += "{0}\n".format(self.ipv6gateway)
+         s += "mac: {0}\n".format(self.mac)
+         s += "mtu: {0}\n".format(self.mtu)
+         s += "netmask: {0}\n".format(self.netmask)
+         s += "physical: {0}\n".format(self.physical)
+         s += "vlan: {0}".format(self.vlan)
+         return s
 
 class Host(object):
     def __init__(self, uuid):
@@ -309,15 +311,16 @@ class Host(object):
         ret = self.api.host_metrics.get_memory_free(self.api.session, muuid)
         return int(checkAPIResult(ret))
 
-    def dump(self):
-        print "Hostname: {0}".format(self.hostname)
-        print "Label: {0}".format(self.label)
-        print "Description: {0}".format(self.description)
-        print "Address:{0}".format(self.address)
-        print "logging: {0}".format(self.logging)
-        print "ncpu: {0}".format(self.ncpu)
-        print "npif: {0}".format(self.npif)
-        print "nvm: {0}".format(self.nvm)
+    def __str__(self):
+        s = "Hostname: {0}\n".format(self.hostname)
+        s += "Label: {0}\n".format(self.label)
+        s += "Description: {0}\n".format(self.description)
+        s += "Address:{0}\n".format(self.address)
+        s += "logging: {0}\n".format(self.logging)
+        s += "ncpu: {0}\n".format(self.ncpu)
+        s += "npif: {0}\n".format(self.npif)
+        s += "nvm: {0}".format(self.nvm)
+        return s
 
 class VIF(object):
     def __init__(self, uuid):
@@ -354,13 +357,14 @@ class VIF(object):
         ret = self.api.VIF.get_other_config(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    def dump(self):
-        print "=== {0} ===".format(self.device)
-        print "plugged: {0}".format(self.plugged)
-        print "MAC: {0}".format(self.mac)
-        print "MTU: {0}".format(self.mtu)
-        print "runtime_properties: {0}".format(self.runtime_properties)
-        print "other_config: {0}".format(self.other_config)
+    def __str__(self):
+        s = "=== {0} ===\n".format(self.device)
+        s += "plugged: {0}\n".format(self.plugged)
+        s += "MAC: {0}\n".format(self.mac)
+        s += "MTU: {0}\n".format(self.mtu)
+        s += "runtime_properties: {0}\n".format(self.runtime_properties)
+        s += "other_config: {0}".format(self.other_config)
+        return s
 
 class VM(object):
     def __init__(self, uuid):
@@ -429,18 +433,19 @@ class VM(object):
     def nvif(self):
         return len(self.vifs)
 
-    def dump(self):
-        print "domid: {0}".format(self.domid)
-        print "is a snapshot?: {0}".format(self.isASnapshot)
-        print "is a template?: {0}".format(self.isATemplate)
-        print "is control domain?: {0}".format(self.isControlDomain)
-        print "label: {0}".format(self.label)
-        print "description: {0}".format(self.description)
-        print "tags: {0}".format(self.tags)
-        print "power: {0}".format(self.power)
-        print "nvcpu: {0}".format(self.nvcpu)
-        print "nvram: {0}".format(self.nvram)
-        print "nvif: {0}".format(self.nvif)
+    def __str__(self):
+        s = "domid: {0}".format(self.domid)
+        s += "is a snapshot?: {0}\n".format(self.isASnapshot)
+        s += "is a template?: {0}\n".format(self.isATemplate)
+        s += "is control domain?: {0}\n".format(self.isControlDomain)
+        s += "label: {0}\n".format(self.label)
+        s += "description: {0}\n".format(self.description)
+        s += "tags: {0}\n".format(self.tags)
+        s += "power: {0}\n".format(self.power)
+        s += "nvcpu: {0}\n".format(self.nvcpu)
+        s += "nvram: {0}\n".format(self.nvram)
+        s += "nvif: {0}".format(self.nvif)
+        return s
 
 class Session(object):
     api = None
@@ -449,7 +454,7 @@ class Session(object):
         Session.api = Base(uri)
 
     def login(self, user, password):
-        result = self.api.session.login_with_password(user, password)        
+        result = self.api.session.login_with_password(user, password)
         self.api.session = checkAPIResult(result)
 
     def logout(self):
