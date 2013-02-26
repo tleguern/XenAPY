@@ -16,6 +16,12 @@ There is a class per API object, or currently:
    * VM
    * VIF - Virtual InterFace
 
+Attributes from these classes are lazy initialized, in order to save Xen from
+flood.
+
+XenAPY is still in an early stage of development, and is currently "read-only",
+you can't send request others than getting the value of some fields.
+
 Requirements
 ------------
 
