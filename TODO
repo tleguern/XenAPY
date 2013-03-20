@@ -10,7 +10,7 @@ TODO
     [X] method ncpu - get the number of CPU attached to this host
     [X] method cpus - get a list of CPU object attached to this host
     [X] class CPU
-        [ ] Document class CPU
+        [X] Document class CPU
     [X] class PIF
         [ ] Document class PIF
     [X] class VM

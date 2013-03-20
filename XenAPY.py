@@ -86,62 +86,74 @@ class xenproperty(object):
 # API Classes
 
 class CPU(object):
+    '''Descibe a physical CPU. Is host_cpu in XAPI.'''
     def __init__(self, uuid):
         self.api = Session.api
         self.uuid = uuid
 
     @xenproperty
     def family(self):
+        '''Family number of the physical CPU'''
         ret = self.api.host_cpu.get_family(self.api.session, self.uuid)
-        return checkAPIResult(ret)
+        return int(checkAPIResult(ret))
 
     @xenproperty
     def features(self):
+        '''Bitmap of the CPU features. See CPU.flags'''
         ret = self.api.host_cpu.get_features(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
     def flags(self):
+        '''A decoded version of CPU.features'''
         ret = self.api.host_cpu.get_flags(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
     def model(self):
+        '''Model number of the physical CPU'''
         ret = self.api.host_cpu.get_model(self.api.session, self.uuid)
-        return checkAPIResult(ret)
+        return int(checkAPIResult(ret))
 
     @xenproperty
     def modelname(self):
+        '''Model name of the physical CPU'''
         ret = self.api.host_cpu.get_modelname(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
     def number(self):
+        '''The number of physical CPU inside the host'''
         ret = self.api.host_cpu.get_number(self.api.session, self.uuid)
-        return checkAPIResult(ret)
+        return int(checkAPIResult(ret))
+
+    @xenproperty
+    def speed(self):
+        '''The speed of the CPU in Mhz'''
+        ret = self.api.host_cpu.get_speed(self.api.session, self.uuid)
+        return int(checkAPIResult(ret))
 
     @xenproperty
     def stepping(self):
+        '''The stepping of the physical CPU'''
         ret = self.api.host_cpu.get_stepping(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
-    def speed(self):
-        ret = self.api.host_cpu.get_speed(self.api.session, self.uuid)
-        return checkAPIResult(ret)
-
-    @xenproperty
     def utilisation(self):
+        '''The current CPU utilisation'''
         ret = self.api.host_cpu.get_utilisation(self.api.session, self.uuid)
-        return checkAPIResult(ret)
+        return float(checkAPIResult(ret))
 
     @xenproperty
     def vendor(self):
+        '''The vendor of the physical CPU'''
         ret = self.api.host_cpu.get_vendor(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
     def other_config(self):
+        '''Additional configuration'''
         ret = self.api.host_cpu.get_other_config(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
@@ -370,6 +382,7 @@ class Host(object):
         return checkAPIResult(ret)
     @logging.setter
     def logging(self,value):
+        '''logging configuration'''
         ret = self.api.host.set_logging(self.api.session,self.uuid,value)
         return checkAPIResult(ret)
 
