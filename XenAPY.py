@@ -171,29 +171,104 @@ class CPU(object):
         s += "other_config: {0}".format(self.other_config)
         return s
 
+class Network(object):
+    '''A virtual network'''
+    def  __init__(self, uuid):
+        self.api = Session.api
+        self.uuid = uuid
+
+    @xenproperty
+    def bridge(self):
+        '''Name of the bridge corresponding to this network on the local host'''
+        ret = self.api.network.get_bridge(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def mtu(self):
+        '''MTU in bytes'''
+        ret = self.api.network.get_MTU(self.api.session,self.uuid)
+        return int(checkAPIResult(ret))
+    @mtu.setter
+    def mtu(self,value):
+        ret = self.api.network.set_MTU(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def description(self):
+        '''Human-readable description'''
+        ret = self.api.network.get_name_description(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @description.setter
+    def description(self,value):
+        ret = self.api.network.set_name_description(self.api.session,self.uuid,
+            value)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def label(self):
+        '''Human-readable name'''
+        ret = self.api.network.get_name_label(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @label.setter
+    def label(self,value):
+        ret = self.api.network.set_name_label(self.api.session,self.uuid,
+            value)
+        return checkAPIResult(ret)
+
+#PIFs
+
+    @xenproperty
+    def tags(self):
+        '''User defined tags for categorization purposes'''
+        ret = self.api.network.get_tags(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @tags.setter
+    def tags(self,value):
+        ret = self.api.network.set_tags(self.api.session,self.uuid,
+            value)
+        return checkAPIResult(ret)
+
+#VIFs
+
+    def __str__(self):
+        print "bridge: {0}".format(self.bridge)
+        print "MTU: {0}".format(self.mtu)
+        print "label: {0}".format(self.label)
+        print "description: {0}".format(self.description)
+        print "tags: {0}".format(self.tags)
+
 class PIF(object):
     def __init__(self, uuid):
         self.api = Session.api
         self.uuid = uuid
 
-    @ReadOnlyAttribute
-    def device(self):
-        ret = self.api.PIF.get_device(self.api.session, self.uuid)
-        return int(checkAPIResult(ret))
+#bond_master_of
+#bond_slave_of
+#currentrlu_attached
 
-    @ReadOnlyAttribute
+    @xenproperty
+    def device(self):
+        '''Machine-readable name of the interface'''
+        ret = self.api.PIF.get_device(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+#disallow_unplug
+
+    @xenproperty
     def dns(self):
         ret = self.api.PIF.get_DNS(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyAttribute
-    def ipv4(self):
-        ret = self.api.PIF.get_IP(self.api.session, self.uuid)
-        return checkAPIResult(ret)
-
-    @ReadOnlyAttribute
+    @xenproperty
     def ipv4gateway(self):
         ret = self.api.PIF.get_gateway(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+#host
+
+    @xenproperty
+    def ipv4(self):
+        ret = self.api.PIF.get_IP(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
     #@xenproperty
@@ -206,30 +281,48 @@ class PIF(object):
     #    ret = self.api.PIF.get_ipv6_gateway(self.api.session, self.uuid)
     #    return checkAPIResult(ret)
 
-    @ReadOnlyAttribute
+    @xenproperty
     def mac(self):
         ret = self.api.PIF.get_MAC(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyAttribute
+#management
+#metrics
+
+    @xenproperty
     def mtu(self):
         ret = self.api.PIF.get_MTU(self.api.session, self.uuid)
         return int(checkAPIResult(ret))
 
-    @ReadOnlyAttribute
+    @xenproperty
     def netmask(self):
         ret = self.api.PIF.get_netmask(self.api.session, self.uuid)
         return checkAPIResult(ret)
+
+    @xenproperty
+    def network(self):
+        ret = self.api.PIF.get_network(self.api.session, self.uuid)
+        net = checkAPIResult(ret)
+        return Network(net)
+
+#other_config
 
     @xenproperty
     def physical(self):
         ret = self.api.PIF.get_physical(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyAttribute
+#primary_address_type
+#tunnel_access_PIF_of
+#tunnel_transport_PIF_of
+
+    @xenproperty
     def vlan(self):
         ret = self.api.PIF.get_VLAN(self.api.session, self.uuid)
         return int(checkAPIResult(ret))
+
+#VLAN_master_of
+#VLAN_slave_of
 
     def __str__(self):
          s = "=== {0} ===\n".format(self.device)
@@ -244,6 +337,14 @@ class PIF(object):
          s += "physical: {0}\n".format(self.physical)
          s += "vlan: {0}".format(self.vlan)
          return s
+
+    def plug(self):
+        ret = self.api.PIF.plug(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    def unplug(self):
+        ret = self.api.PIF.unplug(self.api.session, self.uuid)
+        return checkAPIResult(ret)
 
 class Host(object):
     def __init__(self, uuid):
@@ -705,18 +806,18 @@ class VM(object):
     @xenproperty
     def label(self):
         '''Human readable name of the virtual machine'''
-        ret = self.api.VM.get_name_label(self.api.session, self.uuid)
+        ret = self.api.VM.get_name_label(self.api.session,self.uuid)
         return checkAPIResult(ret).encode("utf-8")
     @label.setter
     def label(self):
-        ret = self.api.VM.set_name_label(self.api.session, self.uuid)
+        ret = self.api.VM.set_name_label(self.api.session,self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
     def order(self):
         '''The point in the startup or shutdown sequence at which this
         virtual machine is'''
-        ret = self.api.VM.get_order(self.api.session, self.uuid)
+        ret = self.api.VM.get_order(self.api.session,self.uuid)
         return int(checkAPIResult(ret))
 
 #other_config
@@ -726,11 +827,21 @@ class VM(object):
 
     @xenproperty
     def power_state(self):
-        ret = self.api.VM.get_power_state(self.api.session, self.uuid)
+        ret = self.api.VM.get_power_state(self.api.session,self.uuid)
         return checkAPIResult(ret)
 
 #protection_policy
 #PV_args
+
+    @xenproperty
+    def pv_args(self):
+        ret = self.api.VM.get_PV_args(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @pv_args.setter
+    def pv_args(self,value):
+        ret = self.api.VM.set_PV_args(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
 #PV_bootloader
 #PV_kernel
 #PV_legacy_args
@@ -810,11 +921,65 @@ class VM(object):
         s += "label: {0}\n".format(self.label)
         s += "description: {0}\n".format(self.description)
         s += "tags: {0}\n".format(self.tags)
-        s += "power: {0}\n".format(self.power)
+        s += "power: {0}\n".format(self.power_state)
         s += "nvcpu: {0}\n".format(self.nvcpu)
         s += "nvram: {0}\n".format(self.nvram)
         s += "nvif: {0}".format(self.nvif)
         return s
+
+    def reboot(self,mode="clean"):
+        if mode == "clean":
+            result = self.api.VM.clean_reboot(self.api.session,self.uuid)
+            return checkAPIResult(result)
+        else:
+            result = self.api.VM.hard_reboot(self.api.session,self.uuid)
+            return checkAPIResult(result)
+
+    def shutdown(self,mode="clean"):
+        if mode == "clean":
+            result = self.api.VM.clean_shutdown(self.api.session,self.uuid)
+            return checkAPIResult(result)
+        else:
+            result = self.api.VM.hard_shutdown(self.api.session,self.uuid)
+            return checkAPIResult(result)
+
+    def clone(self,name):
+        result = self.api.VM.clone(self.api.session,self.uuid,name)
+        return VM(checkAPIResult(result))
+    
+    def pause(self):
+        result = self.api.VM.pause(self.api.session,self.uuid)
+        return checkAPIResult(result)
+
+    def resume(self,mode="clean",on="current"):
+        if mode == "clean":
+            force = False
+        else:
+            force = True
+        if on == "current":
+            result = self.api.VM.resume(self.api.session,self.uuid,False,force)
+        else:
+            result = self.api.VM.resume_on(self.api.session,self.uuid,on,False,force)
+        return checkAPIResult(result)
+
+    def start(self,mode="clean",on="current"):
+        if mode == "clean":
+            force = False
+        else:
+            force = True
+        if on == "current":
+            result = self.api.VM.start(self.api.session,self.uuid,False,force)
+        else:
+            result = self.api.VM.start_on(self.api.session,self.uuid,on,False,force)
+        return checkAPIResult(result)
+
+    def suspend(self):
+        result = self.api.VM.suspend(self.api.session,self.uuid)
+        return checkAPIResult(result)
+
+    def unpause(self):
+        result = self.api.VM.unpause(self.api.session,self.uuid)
+        return checkAPIResult(result)
 
 class Session(object):
     api = None
@@ -853,12 +1018,27 @@ class Session(object):
                 vms.append(VM(a))
         return vms
 
+    def getVMsTemplate(self):
+        all = checkAPIResult(self.api.VM.get_all(self.api.session))
+        vms = []
+        for a in all:
+            res = self.api.VM.get_record(self.api.session, a)
+            record = checkAPIResult(res)
+            if record["is_a_template"]:
+                vms.append(VM(a))
+        return vms
+
     def getHosts(self):
         all = checkAPIResult(self.api.host.get_all(self.api.session))
         hosts = []
         for a in all:
             hosts.append(Host(a))
         return hosts
+
+    def vif_create(self,vif):
+        '''Undocumented method to create a VIF from a descriptor object'''
+        res = self.api.VIF.create(self.api.session,vif)
+        return checkAPIResult(res)
 
 if __name__ == "__main__":
     url = sys.argv[1]
