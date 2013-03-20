@@ -3,27 +3,36 @@ TODO
 
 [X] Force utf-8 encoding for strings
 [X] Force int conversion for numbers
-[X] class Session
-    [ ] Document class Session
+[ ] class pool
 [X] class Host
     [ ] Document class Host
-    [X] method ncpu - get the number of CPU attached to this host
-    [X] method cpus - get a list of CPU object attached to this host
+    [/] Host metrics
     [X] class CPU
         [X] Document class CPU
-    [X] class PIF
-        [ ] Document class PIF
-    [X] class VM
-        [ ] Document class VM
-        [X] class VIF
-            [ ] Document class VIF
-        [ ] class VDI
-            [ ] Document class VDI
-        [ ] class VBD
-            [ ] Document class VBD
-    [ ] class PGPU
-    [ ] class PCI
-    [ ] class SR
-    [ ] class PBD
-[ ] class Network
+    [X] class Session
+        [ ] Document class Session
+        [ ] class User
+            [ ] Document class User
+
+[X] class PIF
+    [ ] Document class PIF
+    [ ] PIF metrics
+[/] class Network
+[X] class VIF
+    [ ] Document class VIF
+[X] class VM
+    [ ] Document class VM
+    [ ] class Console
+    [ ] vm_metrics
+    [ ] vm_guest_metrics
+    [ ] crashdump
+[ ] class VDI
+    [ ] Document class VDI
+[ ] class VBD
+    [ ] Document class VBD
+[ ] class PGPU
+[ ] class PCI
+[ ] class SR
+    [ ] class SM
+[ ] class PBD
 
