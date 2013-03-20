@@ -75,8 +75,8 @@ class xenproperty(object):
             inst.__dict__[self.name]=result
             return result
     def __set__(self,inst,value):
-        self.set_func(inst,value)
-        inst.__dict__[self.name]=value
+        if self.set_func(inst,value) != None:
+            inst.__dict__[self.name]=value
     def setter(self,set_func):
         self.set_func = set_func
         return self
@@ -269,10 +269,25 @@ class Host(object):
         ret = self.api.host.get_API_version_vendor_implementation(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-# bios_string
+    @xenproperty
+    def bios_strings(self):
+        ret = self.api.host.get_bios_strings(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
 # blobs
-# capabilities
-# chipset_info
+
+    @xenproperty
+    def capabilities(self):
+        '''Set of Xen capabilities'''
+        ret = self.api.host.get_capabilities(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def chipset_info(self):
+        '''Map of chipset information'''
+        ret = self.api.host.get_chipset_info(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
 # cpu_configuration
 # cpu_info
 # crash_dump_sr
@@ -289,7 +304,10 @@ class Host(object):
         ret = self.api.host.get_enabled(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-# external_auth_configuration
+    @xenproperty
+    def external_auth_configuration(self):
+        ret = self.api.host.get_external_auth_configuration(self.api.session, self.uuid)
+        return checkAPIResult(ret)
 
     @xenproperty
     def external_auth_service_name(self):
@@ -315,6 +333,7 @@ class Host(object):
 
     @xenproperty
     def hostname(self):
+        '''Hostname of the host'''
         ret = self.api.host.get_hostname(self.api.session, self.uuid)
         return checkAPIResult(ret)
     @hostname.setter
@@ -322,8 +341,26 @@ class Host(object):
         ret = self.api.host.set_hostname(self.api.session,self.uuid,value)
         return checkAPIResult(ret)
 
-# license_params
-# license_server
+    @xenproperty
+    def license_params(self):
+        '''State of the current license'''
+        ret = self.api.host.get_license_params(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def license_server(self):
+        '''Contact information of the licence server, in the form
+        {"address": "", "port": ""}'''
+        ret = self.api.host.get_license_server(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @license_server.setter
+    def license_server(self,value):
+        if "address" in value and "port" in value:
+            ret = self.api.host.set_license_server(self.api.session,self.uuid,value)
+            return checkAPIResult(ret)
+        else:
+            return None
+
 # local_cache_sr
 
     # XXX: string map
@@ -377,9 +414,9 @@ class Host(object):
     # End of Class host_metrics
     ##
 
-    # Is "name_description on XAPI"
     @xenproperty
     def description(self):
+        '''Description of the host. Is name_description in XAPI.'''
         ret = self.api.host.get_name_description(self.api.session, self.uuid)
         return checkAPIResult(ret).encode("utf-8")
     @description.setter
@@ -390,6 +427,7 @@ class Host(object):
     # Is "name_label on XAPI"
     @xenproperty
     def label(self):
+        '''Name of the host (but not hostname). Is name_label in XAPI.'''
         ret = self.api.host.get_name_label(self.api.session,self.uuid)
         return checkAPIResult(ret).encode("utf-8")
     @label.setter
@@ -405,6 +443,7 @@ class Host(object):
 
     @xenproperty
     def pifs(self):
+        '''List of physical network interfaces. Is PIFs in XAPI.'''
         pifs_list = []
         ret = self.api.host.get_PIFs(self.api.session, self.uuid)
         for pif in checkAPIResult(ret):
@@ -420,6 +459,7 @@ class Host(object):
 
     @xenproperty
     def vms(self):
+        '''List of VMs currently on this host. Is resident_VMs in XAPI'''
         vms_list = []
         ret = self.api.host.get_resident_VMs(self.api.session, self.uuid)
         for vm in checkAPIResult(ret):
@@ -431,10 +471,23 @@ class Host(object):
         ret = self.api.host.get_sched_policy(self.api.session,self.uuid)
         return checkAPIResult(ret)
 
-# software_version
-# supported_bootloaders
+    @xenproperty
+    def software_version(self):
+        ret = self.api.host.get_software_version(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def supported_bootloaders(self):
+        ret = self.api.host.get_supported_bootloaders(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
 # suspend_image_sr
-# tags
+
+    # TODO: Write support
+    @xenproperty
+    def tags(self):
+        ret = self.api.host.get_tags(self.api.session,self.uuid)
+        return checkAPIResult(ret)
 
     ##
     # Not part of official XAPI definitions
