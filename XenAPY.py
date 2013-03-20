@@ -37,29 +37,6 @@ class Base(object, xmlrpclib.ServerProxy):
         xmlrpclib.ServerProxy.__init__(self, uri, None, None, 0, 1)
         session = None
 
-class ReadOnlyCachedAttribute(object):
-    '''This decorator allows you to create a property which will be lazy
-    initialized and cached for later access.
-    Inspired from Denis Otkidach work, under PSF license.
-    '''
-    def __init__(self, method, name=None):
-        self.method = method
-        self.name = name or method.__name__
-        self.__doc__ = method.__doc__
-    def __get__(self, inst, cls):
-        if inst is None:
-            return self
-        elif self.name in inst.__dict__:
-            return inst.__dict__[self.name]
-        else:
-            result = self.method(inst)
-            inst.__dict__[self.name]=result
-            return result
-    def __set__(self, inst, value):
-        raise AttributeError("This property is read-only")
-    def __delete__(self,inst):
-        del inst.__dict__[self.name]
-
 class ReadOnlyAttribute(object):
     ''' This decorator allows you to create a property which will be lazy
     initilized, but recomputed at every access.
@@ -80,6 +57,31 @@ class ReadOnlyAttribute(object):
     def __delete__(self,inst):
         del inst.__dict__[self.name]
 
+class xenproperty(object):
+    def __init__(self,wrapped,name=None):
+        self.wrapped = wrapped
+        self.name = name or wrapped.__name__
+        try:
+            self.__doc__ = wrapped.__doc__
+        except:
+            pass
+    def __get__(self,inst,objtype=None):
+        if inst is None:
+            return self
+        elif self.name in inst.__dict__:
+            return inst.__dict__[self.name]
+        else:
+            result = self.wrapped(inst)
+            inst.__dict__[self.name]=result
+            return result
+    def __set__(self,inst,value):
+        self.set_func(inst,value)
+        inst.__dict__[self.name]=value
+    def setter(self,set_func):
+        self.set_func = set_func
+        return self
+    def set_func(self,inst,value):
+        raise AttributeError("This property is read-only")
 
 # API Classes
 
@@ -88,57 +90,57 @@ class CPU(object):
         self.api = Session.api
         self.uuid = uuid
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def family(self):
         ret = self.api.host_cpu.get_family(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def features(self):
         ret = self.api.host_cpu.get_features(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def flags(self):
         ret = self.api.host_cpu.get_flags(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def model(self):
         ret = self.api.host_cpu.get_model(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def modelname(self):
         ret = self.api.host_cpu.get_modelname(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def number(self):
         ret = self.api.host_cpu.get_number(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def stepping(self):
         ret = self.api.host_cpu.get_stepping(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def speed(self):
         ret = self.api.host_cpu.get_speed(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def utilisation(self):
         ret = self.api.host_cpu.get_utilisation(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def vendor(self):
         ret = self.api.host_cpu.get_vendor(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def other_config(self):
         ret = self.api.host_cpu.get_other_config(self.api.session, self.uuid)
         return checkAPIResult(ret)
@@ -182,12 +184,12 @@ class PIF(object):
         ret = self.api.PIF.get_gateway(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    #@ReadOnlyCachedAttribute
+    #@xenproperty
     #def ipv6(self):
     #    ret = self.api.PIF.get_ipv6(self.api.session, self.uuid)
     #    return checkAPIResult(ret)
 
-    #@ReadOnlyCachedAttribute
+    #@xenproperty
     #def ipv6gateway(self):
     #    ret = self.api.PIF.get_ipv6_gateway(self.api.session, self.uuid)
     #    return checkAPIResult(ret)
@@ -207,7 +209,7 @@ class PIF(object):
         ret = self.api.PIF.get_netmask(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def physical(self):
         ret = self.api.PIF.get_physical(self.api.session, self.uuid)
         return checkAPIResult(ret)
@@ -236,32 +238,74 @@ class Host(object):
         self.api = Session.api
         self.uuid = uuid
 
-    @ReadOnlyAttribute
+    @xenproperty
     def address(self):
         ret = self.api.host.get_address(self.api.session, self.uuid)
         return checkAPIResult(ret)
-
-    @ReadOnlyAttribute
-    def hostname(self):
-        ret = self.api.host.get_hostname(self.api.session, self.uuid)
+    @address.setter
+    def address(self,value):
+        ret = self.api.host.set_hostname(self.api.session,self.uuid,value)
         return checkAPIResult(ret)
 
-    @ReadOnlyAttribute
-    def label(self):
-        ret = self.api.host.get_name_label(self.api.session, self.uuid)
-        return checkAPIResult(ret).encode("utf-8")
+# allowed_operations
 
-    @ReadOnlyAttribute
-    def description(self):
-        ret = self.api.host.get_name_description(self.api.session, self.uuid)
-        return checkAPIResult(ret).encode("utf-8")
-
-    @ReadOnlyCachedAttribute
-    def logging(self):
-        ret = self.api.host.get_logging(self.api.session, self.uuid)
+    @xenproperty
+    def api_version_major(self):
+        ret = self.api.host.get_API_version_major(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
+    def api_version_minor(self):
+        ret = self.api.host.get_API_version_minor(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def api_version_vendor(self):
+        ret = self.api.host.get_API_version_vendor(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def api_version_vendor_implementation(self):
+        ret = self.api.host.get_API_version_vendor_implementation(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+# bios_string
+# blobs
+# capabilities
+# chipset_info
+# cpu_configuration
+# cpu_info
+# crash_dump_sr
+# crashdumps
+# current_operations
+
+    @xenproperty
+    def edition(self):
+        ret = self.api.host.get_edition(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def enabled(self):
+        ret = self.api.host.get_enabled(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+# external_auth_configuration
+
+    @xenproperty
+    def external_auth_service_name(self):
+        ret = self.api.host.get_external_auth_service_name(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def external_auth_type(self):
+        ret = self.api.host.get_external_auth_type(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+# ha_network_peers
+# ha_statefiles
+
+    # This is host_CPUs in XAPI
+    @xenproperty
     def cpus(self):
         cpus_list = []
         ret = self.api.host.get_host_CPUs(self.api.session, self.uuid)
@@ -269,11 +313,97 @@ class Host(object):
             cpus_list.append(CPU(cpu))
         return cpus_list
 
-    @ReadOnlyCachedAttribute
-    def ncpu(self):
-        return len(self.cpus)
+    @xenproperty
+    def hostname(self):
+        ret = self.api.host.get_hostname(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+    @hostname.setter
+    def hostname(self,value):
+        ret = self.api.host.set_hostname(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+# license_params
+# license_server
+# local_cache_sr
+
+    # XXX: string map
+    @xenproperty
+    def logging(self):
+        ret = self.api.host.get_logging(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+    @logging.setter
+    def logging(self,value):
+        ret = self.api.host.set_logging(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def memory_overhead(self):
+        ret = self.api.host.get_memory_overhead(self.api.session, self.uuid)
+        return int(checkAPIResult(ret))
+
+    ##
+    # Class host_metrics
+
+    @xenproperty
+    def host_metrics_uuid(self):
+        ret = self.api.host.get_metrics(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def last_updated(self):
+        muuid = self.host_metrics_uuid
+        ret = self.api.host_metrics.get_last_updated(self.api.session, muuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def live(self):
+        muuid = self.host_metrics_uuid
+        ret = self.api.host_metrics.get_live(self.api.session, muuid)
+        return bool(checkAPIResult(ret))
+
+    @xenproperty
+    def nram(self):
+        muuid = self.host_metrics_uuid
+        ret = self.api.host_metrics.get_memory_total(self.api.session, muuid)
+        return int(checkAPIResult(ret))
+
+    @xenproperty
+    def nramFree(self):
+        muuid = self.host_metrics_uuid
+        ret = self.api.host_metrics.get_memory_free(self.api.session, muuid)
+        return int(checkAPIResult(ret))
+    # other_config
+    
+    # End of Class host_metrics
+    ##
+
+    # Is "name_description on XAPI"
+    @xenproperty
+    def description(self):
+        ret = self.api.host.get_name_description(self.api.session, self.uuid)
+        return checkAPIResult(ret).encode("utf-8")
+    @description.setter
+    def description(self,value):
+        ret = self.api.host.set_name_description(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
+    # Is "name_label on XAPI"
+    @xenproperty
+    def label(self):
+        ret = self.api.host.get_name_label(self.api.session,self.uuid)
+        return checkAPIResult(ret).encode("utf-8")
+    @label.setter
+    def label(self,value):
+        ret = self.api.host.set_name_label(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
+# other_config
+# patches
+# PBDs
+# PCIs
+# PGPUs
+
+    @xenproperty
     def pifs(self):
         pifs_list = []
         ret = self.api.host.get_PIFs(self.api.session, self.uuid)
@@ -281,11 +411,14 @@ class Host(object):
             pifs_list.append(PIF(pif))
         return pifs_list
 
-    @ReadOnlyCachedAttribute
-    def npif(self):
-        return len(self.pifs)
+# power_on_config
 
-    @ReadOnlyAttribute
+    @xenproperty
+    def power_on_mode(self):
+        ret = self.api.host.get_power_on_mode(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
     def vms(self):
         vms_list = []
         ret = self.api.host.get_resident_VMs(self.api.session, self.uuid)
@@ -293,25 +426,35 @@ class Host(object):
             vms_list.append(VM(vm))
         return vms_list
 
-    @ReadOnlyAttribute
+    @xenproperty
+    def sched_policy(self):
+        ret = self.api.host.get_sched_policy(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+# software_version
+# supported_bootloaders
+# suspend_image_sr
+# tags
+
+    ##
+    # Not part of official XAPI definitions
+    ##
+    @xenproperty
+    def ncpu(self):
+        '''Return the number of CPUs available on this host'''
+        return len(self.cpus)
+
+    @xenproperty
+    def npif(self):
+        '''Return the number of physical IF available on this host'''
+        return len(self.pifs)
+
+    @xenproperty
     def nvm(self):
+        '''Return the number of VM running on this host'''
         return len(self.vms)
 
-    @ReadOnlyCachedAttribute
-    def nram(self):
-        ret = self.api.host.get_metrics(self.api.session, self.uuid)
-        muuid = checkAPIResult(ret)
-        ret = self.api.host_metrics.get_memory_total(self.api.session, muuid)
-        return int(checkAPIResult(ret))
-
-    @ReadOnlyAttribute
-    def nramFree(self):
-        ret = self.api.host.get_metrics(self.api.session, self.uuid)
-        muuid = checkAPIResult(ret)
-        ret = self.api.host_metrics.get_memory_free(self.api.session, muuid)
-        return int(checkAPIResult(ret))
-
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def getVMByLabel(self, label):
         for vm in self.vms:
             if vm.label == label:
@@ -323,7 +466,8 @@ class Host(object):
         s += "Label: {0}\n".format(self.label)
         s += "Description: {0}\n".format(self.description)
         s += "Address:{0}\n".format(self.address)
-        s += "logging: {0}\n".format(self.logging)
+        s += "Live: {0}\n".format(self.live)
+        s += "Version: {0} v{1}.{2} - {3}\n".format(self.api_version_vendor,self.api_version_major,self.api_version_minor,self.api_version_vendor_implementation)
         s += "ncpu: {0}\n".format(self.ncpu)
         s += "npif: {0}\n".format(self.npif)
         s += "nvm: {0}".format(self.nvm)
@@ -334,7 +478,7 @@ class VIF(object):
         self.api = Session.api
         self.uuid = uuid
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def plugged(self):
         ret = self.api.VIF.get_currently_attached(self.api.session, self.uuid)
         return checkAPIResult(ret)
@@ -378,22 +522,22 @@ class VM(object):
         self.api = Session.api
         self.uuid = uuid
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def domid(self):
         ret = self.api.VM.get_domid(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def isASnapshot(self):
         ret = self.api.VM.get_is_a_snapshot(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def isATemplate(self):
         ret = self.api.VM.get_is_a_template(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def isControlDomain(self):
         ret = self.api.VM.get_is_control_domain(self.api.session, self.uuid)
         return checkAPIResult(ret)
@@ -418,12 +562,12 @@ class VM(object):
         ret = self.api.VM.get_power_state(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def nvcpu(self):
         ret = self.api.VM.get_VCPUs_at_startup(self.api.session, self.uuid)
         return int(checkAPIResult(ret))
 
-    @ReadOnlyCachedAttribute
+    @xenproperty
     def nvram(self):
         ret = self.api.VM.get_memory_target(self.api.session, self.uuid)
         return int(checkAPIResult(ret))
