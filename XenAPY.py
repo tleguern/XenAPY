@@ -86,7 +86,7 @@ class xenproperty(object):
 # API Classes
 
 class CPU(object):
-    '''Descibe a physical CPU. Is host_cpu in XAPI.'''
+    '''A physical CPU. Is host_cpu in XAPI.'''
     def __init__(self, uuid):
         self.api = Session.api
         self.uuid = uuid
@@ -486,11 +486,13 @@ class Host(object):
 
     @xenproperty
     def software_version(self):
+        '''Versions strings of various softwares'''
         ret = self.api.host.get_software_version(self.api.session,self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
     def supported_bootloaders(self):
+        '''A list of available bootloaders'''
         ret = self.api.host.get_supported_bootloaders(self.api.session,self.uuid)
         return checkAPIResult(ret)
 
@@ -499,6 +501,7 @@ class Host(object):
     # TODO: Write support
     @xenproperty
     def tags(self):
+        '''The user-defined tags for categorization purposes'''
         ret = self.api.host.get_tags(self.api.session,self.uuid)
         return checkAPIResult(ret)
 
@@ -584,14 +587,44 @@ class VIF(object):
         return s
 
 class VM(object):
+    '''A virtual machine'''
     def __init__(self, uuid):
         self.api = Session.api
         self.uuid = uuid
 
+#actions_after_crash
+#actions_after_reboot
+#actions_after_shutdown
+#affinity
+#allowed_operations
+#appliance
+#attached_PCIs
+#bios_string
+#blobs
+#blocked_operations
+#children
+#consoles
+#crash_dumps
+#current_operations
+
+    @xenproperty
+    def domarch(self):
+        '''Domain architecture if available'''
+        ret = self.api.VM.get_domarch(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
     @xenproperty
     def domid(self):
+        '''Domain ID if available'''
         ret = self.api.VM.get_domid(self.api.session, self.uuid)
-        return checkAPIResult(ret)
+        return int(checkAPIResult(ret))
+
+#guest_metrics
+#ha_always_run
+#ha_restart_priority
+#HVM_boot_params
+#HVM_boot_policy
+#HVM_shadow_multiplier
 
     @xenproperty
     def isASnapshot(self):
@@ -608,24 +641,97 @@ class VM(object):
         ret = self.api.VM.get_is_control_domain(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
-    @ReadOnlyAttribute
-    def label(self):
-        ret = self.api.VM.get_name_label(self.api.session, self.uuid)
-        return checkAPIResult(ret).encode("utf-8")
+#isSnapshotFromVMPP
+#last_boot_CPU_flags
+#last_booted_record
 
-    @ReadOnlyAttribute
+#memory_dynamic_max
+#memory_dynamic_min
+#memory_overhead
+#memory_static_max
+#memory_static_min
+
+    @xenproperty
+    def nvram(self):
+        '''Dynamically-set memory target in bytes'''
+        ret = self.api.VM.get_memory_target(self.api.session, self.uuid)
+        return int(checkAPIResult(ret))
+
+#metrics
+
+    @xenproperty
     def description(self):
-        ret = self.api.VM.get_name_description(self.api.session, self.uuid)
+        '''Human readable description of the virtual machine'''
+        ret = self.api.VM.get_name_description(self.api.session,self.uuid)
         return checkAPIResult(ret).encode("utf-8")
-
-    @ReadOnlyAttribute
-    def tags(self):
-        ret = self.api.VM.get_tags(self.api.session, self.uuid)
+    @description.setter
+    def description(self,value):
+        ret = self.api.VM.set_name_description(self.api.session,self.uuid,value)
         return checkAPIResult(ret)
 
-    @ReadOnlyAttribute
-    def power(self):
+    @xenproperty
+    def label(self):
+        '''Human readable name of the virtual machine'''
+        ret = self.api.VM.get_name_label(self.api.session, self.uuid)
+        return checkAPIResult(ret).encode("utf-8")
+    @label.setter
+    def label(self):
+        ret = self.api.VM.set_name_label(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def order(self):
+        '''The point in the startup or shutdown sequence at which this
+        virtual machine is'''
+        ret = self.api.VM.get_order(self.api.session, self.uuid)
+        return int(checkAPIResult(ret))
+
+#other_config
+#parent
+#PCI_bus
+#platform
+
+    @xenproperty
+    def power_state(self):
         ret = self.api.VM.get_power_state(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+
+#protection_policy
+#PV_args
+#PV_bootloader
+#PV_kernel
+#PV_legacy_args
+#PV_ramdisk
+
+    @xenproperty
+    def recommendations(self):
+        '''An XML specification of recommended values and ranges for this VM'''
+        ret = self.api.VM.get_recommendations(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @recommendations.setter
+    def recommendations(self,value):
+        ret = self.api.VM.set_recommendations(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
+#resident_on
+#shutdown_delay
+#snapshot_info
+#snapshot_metadata
+#snapshot_of
+#shapshot_time
+#snapshots
+#start_delay
+#suspend_SR
+#suspend_VDI
+
+    @xenproperty
+    def tags(self):
+        '''User defined tags for categorization purposes'''
+        ret = self.api.VM.get_tags(self.api.session, self.uuid)
+        return checkAPIResult(ret)
+    @tags.setter
+    def tags(self,value):
+        ret = self.api.VM.set_tags(self.api.session, self.uuid)
         return checkAPIResult(ret)
 
     @xenproperty
@@ -633,12 +739,22 @@ class VM(object):
         ret = self.api.VM.get_VCPUs_at_startup(self.api.session, self.uuid)
         return int(checkAPIResult(ret))
 
+#transportable_snapshot_id
+#user_version
+#VBDs
+#VCPUs_at_startup
+#VCPUs_max
+#VCPUs_params
+
     @xenproperty
-    def nvram(self):
-        ret = self.api.VM.get_memory_target(self.api.session, self.uuid)
+    def version(self):
+        '''The number of times this VM has been recovered'''
+        ret = self.api.VM.get_version(self.api.session, self.uuid)
         return int(checkAPIResult(ret))
 
-    @ReadOnlyAttribute
+#VGPUs
+
+    @xenproperty
     def vifs(self):
         vifs_list = []
         ret = self.api.VM.get_VIFs(self.api.session, self.uuid)
@@ -646,7 +762,10 @@ class VM(object):
             vifs_list.append(VIF(vif))
         return vifs_list
 
-    @ReadOnlyAttribute
+#VTPMs
+#xenstore_data
+
+    @xenproperty
     def nvif(self):
         return len(self.vifs)
 
