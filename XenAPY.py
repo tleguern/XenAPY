@@ -542,6 +542,39 @@ class Host(object):
         s += "nvm: {0}".format(self.nvm)
         return s
 
+    def disable(self):
+        '''Puts the host in a state in which no new VMs can be started'''
+        ret = self.api.host.disable(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+    def enable(self):
+        '''Puts the host in a state in which new VMs can be started'''
+        ret = self.api.host.enable(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+    def power(self):
+        '''Attempt to power-on the host if possible'''
+        ret = self.api.host.power_on(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+    # TODO: Catch the exception if not disabled
+    def reboot(self,force=False):
+        '''Reboot the host if there are no running VMs and the host
+        is disabled'''
+        if force == True:
+            self.disable()
+        ret = self.api.host.reboot(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
+    # TODO: Catch the exception if not disabled
+    def shutdown(self,force=False):
+        '''Shutdown the host if there are no running VMs and the host
+        is disabled'''
+        if force == True:
+            self.disable()
+        ret = self.api.host.shutdown(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
 class VIF(object):
     def __init__(self, uuid):
         self.api = Session.api
