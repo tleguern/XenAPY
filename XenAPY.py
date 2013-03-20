@@ -85,6 +85,50 @@ class xenproperty(object):
 
 # API Classes
 
+class Pool(object):
+    '''Pool-wide information'''
+    def __init__(self, uuid):
+        self.api = Session.api
+        self.uuid = uuid
+
+    @xenproperty
+    def description(self):
+        '''Human-readable description'''
+        ret = self.api.pool.get_name_description(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @description.setter
+    def description(self,value):
+        ret = self.api.pool.set_name_description(self.api.session,self.uuid,
+            value)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def label(self):
+        '''Human-readable name'''
+        ret = self.api.pool.get_name_label(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @label.setter
+    def label(self,value):
+        ret = self.api.pool.set_name_label(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
+    @xenproperty
+    def tags(self):
+        '''User defined tags for categorization purposes'''
+        ret = self.api.pool.get_tags(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+    @tags.setter
+    def tags(self,value):
+        ret = self.api.pool.set_tags(self.api.session,self.uuid,value)
+        return checkAPIResult(ret)
+
+    def __str__(self):
+        print "TODO"
+
+    def all(self):
+        ret = self.api.pool.get_all(self.api.session,self.uuid)
+        return checkAPIResult(ret)
+
 class CPU(object):
     '''A physical CPU. Is host_cpu in XAPI.'''
     def __init__(self, uuid):
@@ -1039,6 +1083,13 @@ class Session(object):
         '''Undocumented method to create a VIF from a descriptor object'''
         res = self.api.VIF.create(self.api.session,vif)
         return checkAPIResult(res)
+
+    def getPools(self):
+        res = self.api.pool.get_all(self.api.session)
+        pools = []
+        for pool in checkAPIResult(res):
+            pools.append(Pool(pool))
+        return pools
 
 if __name__ == "__main__":
     url = sys.argv[1]
